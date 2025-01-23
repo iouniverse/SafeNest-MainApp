@@ -48,13 +48,15 @@ class Group(models.Model):
         Employee,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        related_name='first_employee'
     )
     second_employee = models.ForeignKey(
         Employee,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        related_name='second_employee'
     )
 
     def __str__(self):
