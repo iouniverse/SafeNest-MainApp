@@ -1,10 +1,13 @@
 from django.db import models
 
+from apps.utils.abs_model import AbstractBaseModel
 
-class Employee(models.Model):
+
+class Employee(AbstractBaseModel):
     """
     This model is used to store the information of the employees
     """
+
     class PositionStatus(models.TextChoices):
         INTERN = 'Intern',
         JUNIOR = 'Junior',
@@ -24,7 +27,15 @@ class Employee(models.Model):
     experience = models.IntegerField(default=0)
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
+
     # otpuska = models.IntegerField() # days of vacation
+
+    def __str__(self):
+        return f'{self.first_name} {self.last_name}'
+
+    class Meta:
+        verbose_name = 'Employee'
+        verbose_name_plural = 'Employees'
 
 
 class Group(models.Model):

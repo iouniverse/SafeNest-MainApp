@@ -27,14 +27,16 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'debug_toolbar',
 
-    'apps.authentication.apps.AuthenticationConfig',
     'apps.core.apps.CoreConfig',
     'apps.kindergarten.apps.KindergartenConfig',
     'apps.participants.apps.ParticipantsConfig',
+    'apps.authentication.apps.AuthenticationConfig',
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

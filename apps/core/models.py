@@ -5,6 +5,9 @@ from apps.utils.abs_model import AbstractBaseModel
 
 
 class Camera(AbstractBaseModel):
+    """
+    Camera model to store camera information
+    """
     name = models.CharField(max_length=255)
     ip = models.GenericIPAddressField()
     port = models.IntegerField()
@@ -21,15 +24,16 @@ class Camera(AbstractBaseModel):
         verbose_name = 'Camera'
         verbose_name_plural = 'Cameras'
 
+
 class CameraUser(AbstractBaseModel):
     camera = models.ForeignKey(Camera, on_delete=models.CASCADE, related_name='users')
 
     # This is a user id from the auth_user table in microservices project
     # it should be written like this: user_id = models.IntegerField()
-    # user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cameras')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cameras')
 
     def __str__(self):
-        return f'{self.camera} - {self.user}'
+        return f'{self.camera} - {self.user_id}'
 
     class Meta:
         verbose_name = 'Camera User'

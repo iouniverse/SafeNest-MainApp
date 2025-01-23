@@ -3,7 +3,6 @@ from django.db import models
 from apps.utils.abs_model import AbstractBaseModel
 
 
-
 class KinderGarten(AbstractBaseModel):
     """
     This model is used to store the information of the kindergartens
@@ -17,7 +16,6 @@ class KinderGarten(AbstractBaseModel):
     inn = models.CharField(max_length=255, help_text='Enter the INN of the kindergarten')
 
     def __str__(self):
-
         return self.name
 
     class Meta:
@@ -48,4 +46,3 @@ class KinderGartenCamera(AbstractBaseModel):
         verbose_name = 'Kinder Garden Camera'
         verbose_name_plural = 'Kinder Garden Cameras'
         unique_together = ('kindergarten', 'camera')
-
