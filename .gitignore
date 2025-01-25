@@ -167,5 +167,11 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 
+# Migration files for Django
+migrations/
+
+# Media files
+media/
+
 # PyPI configuration file
 .pypirc
