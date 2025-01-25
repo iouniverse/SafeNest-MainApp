@@ -139,10 +139,14 @@ class RepresentativeChild(AbstractBaseModel):
 
     def clean(self):
         """
-        Check if the user is already a representative of the child
+        Check if the user is already a representative of the child.
+        Check if the child already has 2 representatives.
         """
         if RepresentativeChild.objects.filter(representative=self.representative, child=self.child).exists():
             raise ValueError(_('The user is already a representative of the child'))
+
+        if RepresentativeChild.objects.filter(child=self.child).count() >= 2:
+            raise ValueError(_('This child already has 2 representatives'))
 
     def save(self, *args, **kwargs):
         self.clean()
