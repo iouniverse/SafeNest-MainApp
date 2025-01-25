@@ -1,11 +1,15 @@
 from typing import Any
 
-from rest_framework import serializers, exceptions
 from django.contrib.auth import get_user_model, authenticate
+
+from rest_framework import serializers, exceptions
+from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.authentication.services import generate_jwt_token
+
+User = get_user_model()
 
 
 class LoginSerializer(serializers.Serializer):
@@ -48,16 +52,19 @@ class LoginSerializer(serializers.Serializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    """
+    Register serializer to create user and generate JWT tokens for the user
+    """
     access_token = serializers.CharField(read_only=True)
     refresh_token = serializers.CharField(read_only=True)
 
     class Meta:
         model = get_user_model()
         fields = (
-            'username',
             'password',
             'first_name',
             'last_name',
+            'phone_number',
             'access_token',
             'refresh_token',
         )
@@ -65,29 +72,30 @@ class RegisterSerializer(serializers.ModelSerializer):
             'password': {'write_only': True},
         }
 
-    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
-        """
-        validate fields and create a new user method
-        :param attrs:
-        :return: attrs
-        """
-        attrs = super().validate(attrs)
+    def validate_phone_number(self, value) -> str:
+        if User.objects.filter(phone_number=value).exists():
+            raise ValidationError("This phone number is already registered.")
+        return value
 
-        user = get_user_model().objects.create_user(
-            username=attrs["username"],
-            first_name=attrs["first_name"],
-            last_name=attrs["last_name"],
-            password=attrs["password"],
-        )
-        token_obj = generate_jwt_token(user)
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = User.objects.create(**validated_data)
+        user.set_password(password)
+        user.save()
 
-        attrs["access_token"] = str(token_obj.access_token)
-        attrs["refresh_token"] = str(token_obj)
+        # Generate JWT tokens
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(user)
+        validated_data['access_token'] = str(refresh.access_token)
+        validated_data['refresh_token'] = str(refresh)
 
-        return attrs
+        return user
 
 
 class CustomTokenRefreshSerializer(serializers.Serializer):
+    """
+    Custom token refresh serializer to return access token with refresh token
+    """
     refresh_token = serializers.CharField()
     access_token = serializers.CharField(read_only=True)
 
