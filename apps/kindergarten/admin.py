@@ -1,7 +1,12 @@
 from django.contrib import admin
 
 from apps.core.models import Camera
+from apps.kindergarten.models import Region, District
 from apps.kindergarten.models.kindergarten import KinderGartenCamera, KinderGarten
+
+admin.site.register(Region)
+admin.site.register(District)
+
 
 
 class KinderGartenCamerInlines(admin.TabularInline):
@@ -20,9 +25,9 @@ class KinderGartenAdmin(admin.ModelAdmin):
     Admin View for KinderGarten
     """
     inlines = [KinderGartenCamerInlines]
-    list_display = ['name', 'region', 'phone', 'inn']
-    search_fields = ['name', 'region__name', 'phone', 'inn']
-    list_filter = ['region']
+    list_display = ['name', 'district', 'phone', 'inn']
+    search_fields = ['name', 'district__name', 'phone', 'inn']
+    list_filter = ['district']
 
 @admin.register(Camera)
 class CameraAdmin(admin.ModelAdmin):

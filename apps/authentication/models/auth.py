@@ -5,7 +5,7 @@ from django.conf import settings
 
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 
 class CustomUserManager(BaseUserManager):
@@ -39,7 +39,7 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(phone_number, password, **extra_fields)
 
 
-class CustomUser(AbstractBaseUser):
+class CustomUser(AbstractBaseUser, PermissionsMixin):
     """
     Custom user model where phone_number is the unique identifiers
     :param first_name: First name of the user
@@ -94,7 +94,7 @@ class CustomUser(AbstractBaseUser):
         super().clean()
 
     def __str__(self):
-        return self.phone_number
+        return f'Phone number: {self.phone_number}, Full name: {self.first_name} {self.last_name}'
 
     class Meta:
         verbose_name = 'User'

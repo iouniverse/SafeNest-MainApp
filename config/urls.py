@@ -23,6 +23,7 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('auth/', include('apps.authentication.urls')),
+    path('main/', include('apps.participants.urls')),
 ] + debug_toolbar_urls()
 
 if settings.DEBUG:

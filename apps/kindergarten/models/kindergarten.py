@@ -8,7 +8,7 @@ class KinderGarten(AbstractBaseModel):
     This model is used to store the information of the kindergartens
     """
     name = models.CharField(max_length=255)
-    region = models.ForeignKey('Region', on_delete=models.CASCADE, related_name='kindergartens')
+    district = models.ForeignKey('kindergarten.District', on_delete=models.CASCADE, related_name='kindergartens')
     description = models.TextField(max_length=500, help_text='Max 500 characters')
     longitude = models.FloatField(null=True, blank=True, help_text='Longitude of the location')
     latitude = models.FloatField(null=True, blank=True, help_text='Latitude of the location')

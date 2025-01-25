@@ -18,7 +18,7 @@ class Camera(AbstractBaseModel):
     status = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.name
+        return f'{self.name} - {self.ip}:{self.port}'
 
     class Meta:
         verbose_name = 'Camera'
