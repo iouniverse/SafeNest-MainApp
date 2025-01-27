@@ -21,7 +21,7 @@ def create_service_file(sender, instance, created, **kwargs):
 
         rtsp_url = f"rtsp://{instance.username}:{instance.password}@{instance.ip}:{instance.port}/Streaming/Channels/101"
 
-        output_file = f"/var/lib/streams/{instance.name}_{instance.id}_%v.m3u8"
+        output_file = f"/var/lib/streams/camera_{instance.id}_%v.m3u8"
 
         service_content = f"""
         [Unit]

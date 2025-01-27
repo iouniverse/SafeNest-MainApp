@@ -43,8 +43,10 @@ class M3U8FileAPIView(APIView):
     """
 
     def get(self, request, file_name):
-        camera_file_path = os.path.join(settings.MEDIA_ROOT, 'streams', file_name)
+        camera_file_path = os.path.join('/var/lib/streams', file_name)
+
         print(camera_file_path)
+
         if os.path.exists(camera_file_path):
             return FileResponse(open(camera_file_path, 'rb'), content_type='application/vnd.apple.mpegurl')
 
