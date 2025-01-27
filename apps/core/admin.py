@@ -1,3 +1,5 @@
 from django.contrib import admin
+from apps.participants.models import RepresentativeChildCamera
 
-# Register your models here.
+
+admin.site.register(RepresentativeChildCamera)

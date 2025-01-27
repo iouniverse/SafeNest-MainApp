@@ -158,3 +158,27 @@ class RepresentativeChild(AbstractBaseModel):
     class Meta:
         verbose_name = 'Child Representative',
         verbose_name_plural = 'Children Representatives'
+
+
+class RepresentativeChildCamera(AbstractBaseModel):
+    """
+    This model is used to link RepresentativeChild with Camera.
+    """
+    representative_child = models.ForeignKey(
+        to=RepresentativeChild,
+        on_delete=models.CASCADE,
+        related_name='cameras'
+    )
+    camera = models.ForeignKey(
+        to='core.Camera',
+        on_delete=models.CASCADE,
+        related_name='representative_children'
+    )
+
+    def __str__(self):
+        return f'{self.representative_child} - {self.camera}'
+
+    class Meta:
+        verbose_name = 'Representative Child Camera'
+        verbose_name_plural = 'Representative Child Cameras'
+        unique_together = ('representative_child', 'camera')
