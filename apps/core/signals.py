@@ -29,11 +29,11 @@ def create_service_file(sender, instance, created, **kwargs):
         After=network.target
 
         [Service]
-        ExecStart=/usr/bin/ffmpeg -rtsp_transport tcp -i {rtsp_url} \
-            -c:v libx264 -preset ultrafast -tune zerolatency \
-            -map 0:v:0 -b:v:0 500k -s:v:0 640x360 \
-            -map 0:v:0 -b:v:1 1000k -s:v:1 1280x720 \
-            -f hls -hls_time 1 -hls_list_size 3 -hls_flags delete_segments \
+        ExecStart=/usr/bin/ffmpeg -rtsp_transport tcp -i {rtsp_url} \\
+            -c:v libx264 -preset ultrafast -tune zerolatency \\
+            -map 0:v:0 -b:v:0 500k -s:v:0 640x360 \\
+            -map 0:v:0 -b:v:1 1000k -s:v:1 1280x720 \\
+            -f hls -hls_time 1 -hls_list_size 3 -hls_flags delete_segments \\
             -var_stream_map "v:0,name:low v:1,name:high" {output_file}
         Restart=always
 
