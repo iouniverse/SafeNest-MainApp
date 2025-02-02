@@ -10,19 +10,6 @@ from apps.authentication.models.otp import PhoneToken
 from apps.authentication.serializers import RegisterSerializer
 
 
-# class RegisterAPIView(CreateAPIView):
-#     """
-#     User register view
-#     """
-#
-#     permission_classes = ()
-#     authentication_classes = ()
-#     serializer_class = RegisterSerializer
-#
-#     def perform_create(self, serializer):
-#         pass
-
-
 class SendOTPAPIView(APIView):
     """
     Send OTP to user's phone number using PhoneToken model
@@ -36,8 +23,15 @@ class SendOTPAPIView(APIView):
         """
         phone_number = request.data.get("phone_number")
         if not phone_number:
-            return Response({"error": "Phone number is required"}, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response(
+                {"error": "Phone number is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if len(phone_number) != 12:
+            return Response(
+                {"error": "Phone number must be 12 digits"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         # Create or update PhoneToken
         phone_token, created = PhoneToken.objects.get_or_create(phone_number=phone_number)
         phone_token.generate_otp()
@@ -108,8 +102,7 @@ class RegisterAPIView(CreateAPIView):
             raise ValidationError({"phone_number": "Phone number not verified"})
 
         serializer.save()
-
-        # phone_token.delete()
+        phone_token.delete()
 
 
 class UserProfileAPIView(APIView):

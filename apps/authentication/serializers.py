@@ -4,9 +4,11 @@ from django.contrib.auth import get_user_model, authenticate
 
 from rest_framework import serializers, exceptions
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from apps.authentication.models.otp import PhoneToken
 from apps.authentication.services import generate_jwt_token
 
 User = get_user_model()
@@ -61,9 +63,9 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = (
+            # 'first_name',
+            # 'last_name',
             'password',
-            'first_name',
-            'last_name',
             'phone_number',
             'access_token',
             'refresh_token',
@@ -75,6 +77,12 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate_phone_number(self, value) -> str:
         if User.objects.filter(phone_number=value).exists():
             raise ValidationError("This phone number is already registered.")
+        if not value.startswith('998'):
+            raise ValidationError("Phone number must start with 998.")
+        if len(value) != 12:
+            raise ValidationError("Phone number must be 12 digits long.")
+
+
         return value
 
     def create(self, validated_data):
@@ -89,7 +97,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data['access_token'] = str(refresh.access_token)
         validated_data['refresh_token'] = str(refresh)
 
-        return user
+        return validated_data
 
 
 class CustomTokenRefreshSerializer(serializers.Serializer):

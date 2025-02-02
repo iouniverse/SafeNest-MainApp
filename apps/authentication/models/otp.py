@@ -1,6 +1,7 @@
 import re
 import random
 
+from django.core.validators import RegexValidator
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
@@ -14,7 +15,16 @@ class PhoneToken(AbstractBaseModel):
     PhoneToken model for OTP verification of phone number.
     AbstractBaseModel is a custom abstract model that contains
     """
-    phone_number = models.CharField(max_length=12, unique=True)
+    phone_number = models.CharField(
+        max_length=12,
+        validators=[
+            RegexValidator(
+                regex=r'^998\d{9}$',
+                message='Phone number must be a valid Uzbekistan number starting with 998 and 12 digits long',
+                code='invalid_phone_number'
+            ),
+        ]
+    )
     otp = models.CharField(max_length=6)
     verified = models.BooleanField(default=False)
 
@@ -25,7 +35,7 @@ class PhoneToken(AbstractBaseModel):
 
     def is_expired(self):
         # Check if the OTP is expired since it was created
-        return (timezone.now() - self.created_at).total_seconds() > 60 * settings.OTP_EXPIRY
+        return (timezone.now() - self.updated_at).total_seconds() > 60 * settings.OTP_EXPIRY
 
     def clean_phone_number(self):
         """
