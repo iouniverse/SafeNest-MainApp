@@ -4,11 +4,9 @@ from django.contrib.auth import get_user_model, authenticate
 
 from rest_framework import serializers, exceptions
 from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.authentication.models.otp import PhoneToken
 from apps.authentication.services import generate_jwt_token
 
 User = get_user_model()
