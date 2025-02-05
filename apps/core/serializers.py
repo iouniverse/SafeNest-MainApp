@@ -23,9 +23,9 @@ class UserCameraSerializer(serializers.ModelSerializer):
         fields = ['camera', 'low_quality_file', 'high_quality_file']
 
     def get_low_quality_file(self, obj):
-        file_path = f"cameras/camera_{obj.camera.id}_0.m3u8"
+        file_path = f"cameras/camera_{obj.camera.id}_low.m3u8"
         return f"{settings.MEDIA_URL}{file_path}"
 
     def get_high_quality_file(self, obj):
-        file_path = f"cameras/camera_{obj.camera.id}_1.m3u8"
+        file_path = f"cameras/camera_{obj.camera.id}_high.m3u8"
         return f"{settings.MEDIA_URL}{file_path}"
