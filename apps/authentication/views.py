@@ -8,6 +8,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from apps.authentication.models.otp import PhoneToken
 from apps.authentication.serializers import RegisterSerializer
+from apps.utils.send_sms import send_sms
 
 
 class SendOTPAPIView(APIView):
@@ -36,7 +37,7 @@ class SendOTPAPIView(APIView):
         phone_token, created = PhoneToken.objects.get_or_create(phone_number=phone_number)
         phone_token.generate_otp()
 
-        # send_sms(phone_number, phone_token.otp)
+        send_sms(phone_number, f"https://star-one.uz/ Tasdiqlash kodi {phone_token.otp} !!!!")
 
         return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
 

@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -122,7 +124,6 @@ class RepresentativeChild(AbstractBaseModel):
         to=settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name='children',
-        limit_choices_to={'ut': CustomUser.UserTypes.USER}
     )
 
     child = models.ForeignKey(
@@ -136,6 +137,7 @@ class RepresentativeChild(AbstractBaseModel):
         choices=StatusRepresentative.choices,
         default=StatusRepresentative.PARENT
     )
+    payment_status = models.BooleanField(default=False, editable=False)
 
     def clean(self):
         """
@@ -182,3 +184,47 @@ class RepresentativeChildCamera(AbstractBaseModel):
         verbose_name = 'Representative Child Camera'
         verbose_name_plural = 'Representative Child Cameras'
         unique_together = ('representative_child', 'camera')
+
+
+class Tariff(AbstractBaseModel):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.CharField(max_length=500)
+
+    price = models.IntegerField(help_text='Price of the tariff in UZS')
+
+    duration = models.IntegerField(help_text='Duration of the tariff in days')
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Tariff'
+        verbose_name_plural = 'Tariffs'
+        ordering = ['-created_at']
+
+
+class UserTariff(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tariffs')
+    tariff = models.ForeignKey(Tariff, on_delete=models.CASCADE, related_name='users')
+    start_date = models.DateField(auto_now_add=True)
+    end_date = models.DateField(null=True, blank=True)
+
+    is_paid = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        """
+        If is_paid is True, end_date will be automatically changed.
+        """
+        if self.is_paid and not self.end_date:
+            self.end_date = self.start_date + timedelta(days=self.tariff.duration)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.user_id} - {self.tariff.name}, ({self.start_date} - {self.end_date})'
+
+    class Meta:
+        verbose_name = 'User Tariff'
+        verbose_name_plural = 'User Tariffs'
+        unique_together = ('user', 'tariff')
+        ordering = ['-start_date']

@@ -1,13 +1,17 @@
 import os
+from datetime import date
 
 from django.http import FileResponse
+from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from apps.core.serializers import UserCameraSerializer
-from apps.participants.models import RepresentativeChildCamera as UserCamera
+from apps.participants.models import RepresentativeChild, RepresentativeChildCamera as UserCamera, Tariff, UserTariff
+from apps.participants.serializers import TariffSerializer, UserTariffSerializer
 
 
 class HomeAPIView(APIView):
@@ -17,18 +21,62 @@ class HomeAPIView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
+    # authentication_classes = [JWTAuthentication]
 
-    def get_queryset(self):
-        user = self.request.user
-        return UserCamera.objects.filter(representative_child__representative_id=1)
+    def get_queryset(self, representative_child: object):
+        return UserCamera.objects.filter(representative_child=representative_child)
+
+    def get_active_tariff(self, user):
+        active_tariff = (
+            UserTariff.objects.filter(user=user, end_date__gte=date.today())
+            .order_by("-end_date")
+            .first()
+        )
+        return active_tariff if active_tariff else None
 
     def get(self, request):
-        queryset = self.get_queryset()
+        user = request.user
+        child_id = request.query_params.get('child_id')
+
+        if not child_id:
+            return Response({"error": "Child ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not child_id.isdigit():
+            return Response({"error": "Child ID must be a number"}, status=status.HTTP_400_BAD_REQUEST)
+        if child_id == '0':
+            return Response({"error": "Child ID cannot be 0"}, status=status.HTTP_400_BAD_REQUEST)
+
+        representative_child = get_object_or_404(
+            RepresentativeChild, id=child_id, representative=user
+        )
+        active_tariff = self.get_active_tariff(user)
+
+        if not representative_child.payment_status:
+            tariffs = Tariff.objects.filter(is_active=True)
+            tariff_serializer = TariffSerializer(tariffs, many=True)
+            return Response({
+                "error": "User has not paid for the child",
+                "message": "Please select a tariff to continue using the service",
+                "tariffs": tariff_serializer.data,
+
+            },
+                status=status.HTTP_402_PAYMENT_REQUIRED
+            )
+        try:
+            queryset = self.get_queryset(representative_child).select_related('camera')
+        except RepresentativeChild.DoesNotExist:
+            return Response(
+                {"error": "Child not found or not associated with user"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         serializer = UserCameraSerializer(queryset, many=True)
 
-        cameras = serializer.data
-        return Response({"cameras": cameras})
+        return Response(
+            {
+                "cameras": serializer.data,
+                "current_tariff": UserTariffSerializer(active_tariff).data if active_tariff else None,
+            }
+        )
 
 
 class M3U8FileAPIView(APIView):

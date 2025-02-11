@@ -7,4 +7,4 @@ INTERNAL_IPS = ["127.0.0.1", ]
 # ==================== OTP SETTINGS ====================
 OTP_EXPIRY = 5
 OTP_LENGTH = 6
-ESKIZ_API_TOKEN = "Token 1234567890"
+ESKIZ_API_TOKEN = "Eskiz token"

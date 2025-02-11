@@ -46,15 +46,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     :param last_name: Last name of the user
     :param avatar: Avatar of the user
     :param phone_number: Phone number of the user
-    :param ut: Type of the user
     """
-    class UserTypes(models.IntegerChoices):
-        """
-        User types for the CustomUser model
-        """
-        USER = 1, 'User'
-        ADMIN = 2, 'Admin'
-        SUPERUSER = 3, 'SuperUser'
 
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -70,7 +62,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             ),
         ]
     )
-    ut = models.PositiveSmallIntegerField(choices=UserTypes.choices, default=UserTypes.USER)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)

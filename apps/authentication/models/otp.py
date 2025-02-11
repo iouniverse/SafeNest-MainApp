@@ -30,7 +30,7 @@ class PhoneToken(AbstractBaseModel):
 
     def generate_otp(self):
         # Generate a random 6-digit OTP
-        self.otp = str(random.randint(100000, 999999))
+        self.otp = str(random.randint(1000, 9999))
         self.save()
 
     def is_expired(self):
