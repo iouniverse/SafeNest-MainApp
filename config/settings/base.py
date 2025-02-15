@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
-    'debug_toolbar',
+    # 'debug_toolbar',
     'corsheaders',
 
     'apps.core.apps.CoreConfig',
@@ -41,7 +41,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -101,6 +101,11 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+
+CELERY_WORKER_CONCURRENCY = 8
+CELERY_ACKS_LATE = True
+CELERYD_PREFETCH_MULTIPLIER = 4
+
 
 CELERY_BEAT_SCHEDULE = {
     "monitor_streams": {

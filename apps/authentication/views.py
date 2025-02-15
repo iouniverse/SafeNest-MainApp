@@ -5,9 +5,10 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from apps.authentication.models.otp import PhoneToken
-from apps.authentication.serializers import RegisterSerializer
+from apps.authentication.serializers import RegisterSerializer, PhoneTokenObtainPairSerializer
 from apps.utils.send_sms import send_sms
 
 
@@ -35,9 +36,13 @@ class SendOTPAPIView(APIView):
             )
         # Create or update PhoneToken
         phone_token, created = PhoneToken.objects.get_or_create(phone_number=phone_number)
+        if phone_token.is_expired():
+            phone_token.delete()
+            phone_token = PhoneToken.objects.create(phone_number=phone_number)
+
         phone_token.generate_otp()
 
-        send_sms(phone_number, f"https://star-one.uz/ Tasdiqlash kodi {phone_token.otp} !!!!")
+        # send_sms(phone_number, f"https://star-one.uz/ Tasdiqlash kodi {phone_token.otp} !!!!")
 
         return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
 
@@ -80,32 +85,6 @@ class VerifyOTPAPIView(APIView):
         return Response({"message": "Phone number verified successfully"}, status=status.HTTP_200_OK)
 
 
-class RegisterAPIView(CreateAPIView):
-    """
-    User register view with phone number verification
-    """
-    permission_classes = ()
-    authentication_classes = ()
-    serializer_class = RegisterSerializer
-
-    def perform_create(self, serializer):
-        """
-        Perform create method for RegisterAPIView.
-        Check if phone number is verified before saving user.
-        """
-        phone_number = self.request.data.get("phone_number")
-        try:
-            phone_token = PhoneToken.objects.get(phone_number=phone_number)
-        except PhoneToken.DoesNotExist:
-            raise ValidationError({"phone_number": "Phone number not found"})
-
-        if not phone_token.verified:
-            raise ValidationError({"phone_number": "Phone number not verified"})
-
-        serializer.save()
-        phone_token.delete()
-
-
 class UserProfileAPIView(APIView):
     """
     User profile view with first name, last name, and phone number
@@ -123,4 +102,12 @@ class UserProfileAPIView(APIView):
             "first_name": user.first_name,
             "last_name": user.last_name,
             "phone_number": user.phone_number,
+            "profile_picture": user.avatar.url if user.avatar else None,
         })
+
+
+class PhoneTokenObtainPairView(TokenObtainPairView):
+    """
+    Custom TokenObtainPairView to return access token with refresh token
+    """
+    serializer_class = PhoneTokenObtainPairSerializer

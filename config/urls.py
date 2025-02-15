@@ -20,15 +20,11 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
-from apps.core.views import M3U8FileAPIView
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('apps.authentication.urls')),
     path('children/', include('apps.participants.urls')),
     path('core/', include('apps.core.urls')),
-
-    path('content/stream/get_m3u8_url/<str:file_name>/', M3U8FileAPIView.as_view(), name='get_m3u8_url'),
 
 ] + debug_toolbar_urls()
 

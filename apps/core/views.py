@@ -1,15 +1,18 @@
 import os
 from datetime import date
 
+from django.core.serializers import get_serializer
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.generics import CreateAPIView, GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from apps.core.serializers import UserCameraSerializer
+from apps.core.models import Screenshot, Recording
+from apps.core.serializers import UserCameraSerializer, ScreenshotSerializer, RecordSerializer
 from apps.participants.models import RepresentativeChild, RepresentativeChildCamera as UserCamera, Tariff, UserTariff
 from apps.participants.serializers import TariffSerializer, UserTariffSerializer
 
@@ -79,19 +82,52 @@ class HomeAPIView(APIView):
         )
 
 
-class M3U8FileAPIView(APIView):
+class ScreenshotAPIView(APIView):
     """
-    API endpoint to serve the m3u8 stream files for cameras.
+    All Screenshot API endpoints for a user is accessible by authenticated users.
+    Create Screenshot object and save it to the database.
     """
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    def get(self, request, file_name):
-        camera_file_path = os.path.join('/var/lib/streams', file_name)
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        data = Screenshot.objects.filter(user=user)
+        serializer = ScreenshotSerializer(data, many=True)
+        return Response(serializer.data)
 
-        print(camera_file_path)
+    def post(self, request, *args, **kwargs):
+        serializer = ScreenshotSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {
+                "success": "Screenshot saved successfully"
+            },
+            status=status.HTTP_201_CREATED
+        )
 
-        if os.path.exists(camera_file_path):
-            return FileResponse(open(camera_file_path, 'rb'), content_type='application/vnd.apple.mpegurl')
 
-        return Response({"error": "File not found"}, status=404)
+class RecordAPIView(APIView):
+    """
+    All Record API endpoints for a user is accessible by authenticated users.
+    Create Record object and save it to the database.
+    """
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        data = Recording.objects.filter(user=user)
+        serializer = RecordSerializer(data, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        serializer = RecordSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {
+                "success": "Recording saved successfully"
+            },
+        )
