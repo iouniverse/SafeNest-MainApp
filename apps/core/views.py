@@ -1,39 +1,43 @@
-import os
 from datetime import date
 
-from django.core.serializers import get_serializer
-from django.http import FileResponse
 from django.shortcuts import get_object_or_404
+
 from rest_framework import status
-from rest_framework.generics import CreateAPIView, GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from apps.core.models import Screenshot, Recording
+from apps.core.models import Screenshot, Recording, Camera
 from apps.core.serializers import UserCameraSerializer, ScreenshotSerializer, RecordSerializer
-from apps.participants.models import RepresentativeChild, RepresentativeChildCamera as UserCamera, Tariff, UserTariff
-from apps.participants.serializers import TariffSerializer, UserTariffSerializer
+from apps.participants.models import RepresentativeChild, Tariff
+from apps.participants.serializers import TariffSerializer
 
 
 class HomeAPIView(APIView):
     """
     API endpoint that allows users to be viewed.
     Can only be accessed by authenticated users.
+
+    Methods:
+        get_queryset(self, representative_child: object)
+            Returns the queryset of cameras that are associated with the group of the child.
+        get_active_tariff(self, user)
+            Returns the active tariff for the user.
+
+    get(self, request)
+        Get the cameras associated with the group of the child
     """
 
     permission_classes = [IsAuthenticated]
-    # authentication_classes = [JWTAuthentication]
+    authentication_classes = [JWTAuthentication]
 
     def get_queryset(self, representative_child: object):
-        return UserCamera.objects.filter(representative_child=representative_child)
+        return Camera.objects.filter(group_id=representative_child.child.group_id)
 
     def get_active_tariff(self, user):
         active_tariff = (
-            UserTariff.objects.filter(user=user, end_date__gte=date.today())
-            .order_by("-end_date")
-            .first()
+            Tariff.objects.filter(is_active=True)
         )
         return active_tariff if active_tariff else None
 
@@ -65,7 +69,7 @@ class HomeAPIView(APIView):
                 status=status.HTTP_402_PAYMENT_REQUIRED
             )
         try:
-            queryset = self.get_queryset(representative_child).select_related('camera')
+            queryset = self.get_queryset(representative_child).select_related('group')
         except RepresentativeChild.DoesNotExist:
             return Response(
                 {"error": "Child not found or not associated with user"},
@@ -73,11 +77,11 @@ class HomeAPIView(APIView):
             )
 
         serializer = UserCameraSerializer(queryset, many=True)
-
+        print(serializer.data)
         return Response(
             {
                 "cameras": serializer.data,
-                "current_tariff": UserTariffSerializer(active_tariff).data if active_tariff else None,
+                # "current_tariff": UserTariffSerializer(active_tariff).data if active_tariff else None,
             }
         )
 

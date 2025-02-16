@@ -12,19 +12,17 @@ class CustomUserManager(BaseUserManager):
     """
     Custom user model manager where phone_number is the unique identifiers
     """
+
     def create_user(self, phone_number, password=None, **extra_fields):
         """
-        Create User with phone_number and password
+        Create User with phone_number
         """
         if not phone_number:
             raise ValueError('The Phone Number field must be set')
 
         user = self.model(phone_number=phone_number, **extra_fields)
-
         if password:
             user.set_password(password)
-        else:
-            raise ValueError('The Password field must be set')
 
         user.save(using=self._db)
         return user
@@ -90,3 +88,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = 'User'
         verbose_name_plural = 'Users'
+        db_table = 'user'
+
+
+User = CustomUser

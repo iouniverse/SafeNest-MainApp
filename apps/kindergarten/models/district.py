@@ -15,7 +15,7 @@ class Region(AbstractBaseModel):
     class Meta:
         verbose_name = 'Region'
         verbose_name_plural = 'Regions'
-
+        db_table = 'region'
 
 class District(AbstractBaseModel):
     """
@@ -30,3 +30,4 @@ class District(AbstractBaseModel):
     class Meta:
         verbose_name = 'District'
         verbose_name_plural = 'Districts'
+        db_table = 'district'

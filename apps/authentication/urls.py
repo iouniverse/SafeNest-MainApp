@@ -2,11 +2,10 @@ from django.urls import path
 
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from apps.authentication.views import UserProfileAPIView, SendOTPAPIView, VerifyOTPAPIView, \
-    PhoneTokenObtainPairView
+from apps.authentication.views import UserProfileAPIView, SendOTPAPIView, VerifyOTPAPIView
 
 urlpatterns = [
-    path('login/', PhoneTokenObtainPairView.as_view(), name='login-view'),
+    # path('login/', PhoneTokenObtainPairView.as_view(), name='login-view'),
     path('refresh-token/', TokenRefreshView.as_view(), name='token_refresh'),
 
     path('profile/', UserProfileAPIView.as_view(), name='user-profile'),

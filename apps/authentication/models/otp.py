@@ -25,7 +25,7 @@ class PhoneToken(AbstractBaseModel):
             ),
         ]
     )
-    otp = models.CharField(max_length=6)
+    otp = models.CharField(max_length=4)
     verified = models.BooleanField(default=False)
 
     def generate_otp(self):
@@ -62,3 +62,4 @@ class PhoneToken(AbstractBaseModel):
     class Meta:
         verbose_name = 'Phone Token'
         verbose_name_plural = 'Phone Tokens'
+        db_table = 'phone_token'
