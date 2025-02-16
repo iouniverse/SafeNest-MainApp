@@ -4,9 +4,12 @@ from django.contrib.auth import get_user_model, authenticate
 
 from rest_framework import serializers, exceptions
 from rest_framework.exceptions import ValidationError
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 
+from apps.authentication.models.otp import PhoneToken
 from apps.authentication.services import generate_jwt_token
 
 User = get_user_model()
@@ -80,7 +83,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         if len(value) != 12:
             raise ValidationError("Phone number must be 12 digits long.")
 
-
         return value
 
     def create(self, validated_data):
@@ -110,3 +112,19 @@ class CustomTokenRefreshSerializer(serializers.Serializer):
         return {
             "access_token": str(refresh_token.access_token)
         }
+
+
+class PhoneTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    PhoneTokenObtainPairSerializer to return access token with refresh token.
+    Check phone number exists and verified.
+    """
+
+    def validate(self, attrs):
+        phone_number = attrs.get("phone_number")
+
+        phone_token = PhoneToken.objects.filter(phone_number=phone_number, verified=True).first()
+        if not phone_token:
+            raise ValidationError({"phone_number": "Phone number not found or not verified"})
+
+        return super().validate(attrs)

@@ -1,49 +1,137 @@
-import os
+from datetime import date
 
-from django.http import FileResponse
+from django.shortcuts import get_object_or_404
+
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from apps.core.serializers import UserCameraSerializer
-from apps.participants.models import RepresentativeChildCamera as UserCamera
+from apps.core.models import Screenshot, Recording, Camera
+from apps.core.serializers import UserCameraSerializer, ScreenshotSerializer, RecordSerializer
+from apps.participants.models import RepresentativeChild, Tariff
+from apps.participants.serializers import TariffSerializer
 
 
 class HomeAPIView(APIView):
     """
     API endpoint that allows users to be viewed.
     Can only be accessed by authenticated users.
+
+    Methods:
+        get_queryset(self, representative_child: object)
+            Returns the queryset of cameras that are associated with the group of the child.
+        get_active_tariff(self, user)
+            Returns the active tariff for the user.
+
+    get(self, request)
+        Get the cameras associated with the group of the child
     """
 
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    def get_queryset(self):
-        user = self.request.user
-        return UserCamera.objects.filter(representative_child__representative_id=1)
+    def get_queryset(self, representative_child: object):
+        return Camera.objects.filter(group_id=representative_child.child.group_id)
+
+    def get_active_tariff(self, user):
+        active_tariff = (
+            Tariff.objects.filter(is_active=True)
+        )
+        return active_tariff if active_tariff else None
 
     def get(self, request):
-        queryset = self.get_queryset()
+        user = request.user
+        child_id = request.query_params.get('child_id')
+
+        if not child_id:
+            return Response({"error": "Child ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not child_id.isdigit():
+            return Response({"error": "Child ID must be a number"}, status=status.HTTP_400_BAD_REQUEST)
+        if child_id == '0':
+            return Response({"error": "Child ID cannot be 0"}, status=status.HTTP_400_BAD_REQUEST)
+
+        representative_child = get_object_or_404(
+            RepresentativeChild, id=child_id, representative=user
+        )
+        active_tariff = self.get_active_tariff(user)
+
+        if not representative_child.payment_status:
+            tariffs = Tariff.objects.filter(is_active=True)
+            tariff_serializer = TariffSerializer(tariffs, many=True)
+            return Response({
+                "error": "User has not paid for the child",
+                "message": "Please select a tariff to continue using the service",
+                "tariffs": tariff_serializer.data,
+
+            },
+                status=status.HTTP_402_PAYMENT_REQUIRED
+            )
+        try:
+            queryset = self.get_queryset(representative_child).select_related('group')
+        except RepresentativeChild.DoesNotExist:
+            return Response(
+                {"error": "Child not found or not associated with user"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         serializer = UserCameraSerializer(queryset, many=True)
+        print(serializer.data)
+        return Response(
+            {
+                "cameras": serializer.data,
+                # "current_tariff": UserTariffSerializer(active_tariff).data if active_tariff else None,
+            }
+        )
 
-        cameras = serializer.data
-        return Response({"cameras": cameras})
 
-
-class M3U8FileAPIView(APIView):
+class ScreenshotAPIView(APIView):
     """
-    API endpoint to serve the m3u8 stream files for cameras.
+    All Screenshot API endpoints for a user is accessible by authenticated users.
+    Create Screenshot object and save it to the database.
     """
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    def get(self, request, file_name):
-        camera_file_path = os.path.join('/var/lib/streams', file_name)
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        data = Screenshot.objects.filter(user=user)
+        serializer = ScreenshotSerializer(data, many=True)
+        return Response(serializer.data)
 
-        print(camera_file_path)
+    def post(self, request, *args, **kwargs):
+        serializer = ScreenshotSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {
+                "success": "Screenshot saved successfully"
+            },
+            status=status.HTTP_201_CREATED
+        )
 
-        if os.path.exists(camera_file_path):
-            return FileResponse(open(camera_file_path, 'rb'), content_type='application/vnd.apple.mpegurl')
 
-        return Response({"error": "File not found"}, status=404)
+class RecordAPIView(APIView):
+    """
+    All Record API endpoints for a user is accessible by authenticated users.
+    Create Record object and save it to the database.
+    """
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        data = Recording.objects.filter(user=user)
+        serializer = RecordSerializer(data, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        serializer = RecordSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {
+                "success": "Recording saved successfully"
+            },
+        )

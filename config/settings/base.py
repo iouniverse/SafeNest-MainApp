@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from celery.schedules import crontab
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -13,7 +15,7 @@ SECRET_KEY = 'django-insecure-nu)@3z9i*vubtmtgn3!m9*=h@v3y907i(vnx=%+pm!fw*ber!x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 # Custom user model
 AUTH_USER_MODEL = 'authentication.CustomUser'
@@ -29,6 +31,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'debug_toolbar',
+    'corsheaders',
 
     'apps.core.apps.CoreConfig',
     'apps.kindergarten.apps.KindergartenConfig',
@@ -37,6 +40,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -46,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'config.urls'
 
@@ -90,6 +95,24 @@ USE_I18N = True
 
 USE_TZ = True
 
+# CELERY
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+CELERY_WORKER_CONCURRENCY = 8
+CELERY_ACKS_LATE = True
+CELERYD_PREFETCH_MULTIPLIER = 4
+
+
+CELERY_BEAT_SCHEDULE = {
+    "monitor_streams": {
+        "task": "apps.core.tasks.monitor_streams",
+        "schedule": crontab(minute="*/1"),
+    }
+}
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/

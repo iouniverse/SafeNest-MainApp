@@ -2,31 +2,21 @@ from django.contrib import admin
 
 from apps.core.models import Camera
 from apps.kindergarten.models import Region, District
-from apps.kindergarten.models.kindergarten import KinderGartenCamera, KinderGarten
+from apps.kindergarten.models.kindergarten import KinderGarden
 
 admin.site.register(Region)
 admin.site.register(District)
 
 
 
-class KinderGartenCamerInlines(admin.TabularInline):
-    """
-    Tabular Inline View for KinderGartenCamera
-    Extra is set to 0 to hide the add button
-    """
-    model = KinderGartenCamera
-    extra = 0
-    autocomplete_fields = ['camera']
 
-
-@admin.register(KinderGarten)
-class KinderGartenAdmin(admin.ModelAdmin):
+@admin.register(KinderGarden)
+class KinderGardenAdmin(admin.ModelAdmin):
     """
-    Admin View for KinderGarten
+    Admin View for KinderGarden
     """
-    inlines = [KinderGartenCamerInlines]
-    list_display = ['name', 'district', 'phone', 'inn']
-    search_fields = ['name', 'district__name', 'phone', 'inn']
+    list_display = ['name', 'district', 'phone']
+    search_fields = ['name', 'district__name', 'phone']
     list_filter = ['district']
 
 @admin.register(Camera)

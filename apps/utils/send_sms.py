@@ -6,7 +6,7 @@ def send_sms(phone_number, message):
     url = "https://notify.eskiz.uz/api/message/sms/send"
     headers = {"Authorization": f"Bearer {settings.ESKIZ_API_TOKEN}"}
     data = {
-        "mobile_phone": phone_number,
+        "mobile_phone": f"+{phone_number}",
         "message": message,
         "from": "4546",
     }

@@ -25,12 +25,12 @@ class PhoneToken(AbstractBaseModel):
             ),
         ]
     )
-    otp = models.CharField(max_length=6)
+    otp = models.CharField(max_length=4)
     verified = models.BooleanField(default=False)
 
     def generate_otp(self):
         # Generate a random 6-digit OTP
-        self.otp = str(random.randint(100000, 999999))
+        self.otp = str(random.randint(1000, 9999))
         self.save()
 
     def is_expired(self):
@@ -62,3 +62,4 @@ class PhoneToken(AbstractBaseModel):
     class Meta:
         verbose_name = 'Phone Token'
         verbose_name_plural = 'Phone Tokens'
+        db_table = 'phone_token'
