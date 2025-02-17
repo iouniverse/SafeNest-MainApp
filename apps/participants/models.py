@@ -24,6 +24,7 @@ class Group(models.Model):
         verbose_name_plural = 'Groups'
         db_table = 'garden_group'
 
+
 class Child(models.Model):
     """
     This model is used to store the information of the children
@@ -63,7 +64,7 @@ class RepresentativeChild(AbstractBaseModel):
         related_name='representatives'
     )
     end_date = models.DateField(null=True, blank=True)
-    payment_status = models.BooleanField(default=False, editable=False)
+    payment_status = models.BooleanField(default=False, editable=True) # temporary
 
     def clean(self):
         """
