@@ -1,5 +1,5 @@
 from django.contrib import admin
-from apps.participants.models import RepresentativeChildCamera
 
+from apps.core.models import RecordItem
 
-admin.site.register(RepresentativeChildCamera)
+admin.site.register(RecordItem)

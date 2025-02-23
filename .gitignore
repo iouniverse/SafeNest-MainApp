@@ -175,3 +175,7 @@ media/
 
 # PyPI configuration file
 .pypirc
+
+# Auxiliary files
+record_cameras.py
+stream.txt
