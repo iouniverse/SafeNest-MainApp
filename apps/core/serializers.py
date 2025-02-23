@@ -1,71 +1,49 @@
+import hashlib
+
 from django.conf import settings
 from rest_framework import serializers
 
-from apps.core.models import Screenshot, Recording, Camera
-
-
-# from apps.participants.models import RepresentativeChildCamera as UserCamera
+from apps.core.models import RecordItem, Camera
 
 
 class UserCameraSerializer(serializers.ModelSerializer):
     """
-    Serializer for the UserCamera model.
+    Handles serialization of Camera objects with an additional field for high-quality
+    file URL.
+
+    Attributes:
+        high_quality_file: A dynamically generated serializer method field that
+        constructs a URL pointing to a high-quality video file for the camera object.
 
     Methods:
-        get_low_quality_file(self, obj)
-            Generates the file name for the low-quality video file corresponding to a specific camera.
-        get_high_quality_file(self, obj)
-            Generates the file name for the high-quality video file corresponding to a specific camera.
+        get_high_quality_file(obj): Static method responsible for dynamically
+        generating the high-quality file URL based on camera object properties.
     """
-    low_quality_file = serializers.SerializerMethodField()
     high_quality_file = serializers.SerializerMethodField()
 
     class Meta:
         model = Camera
-        fields = ['low_quality_file', 'high_quality_file']
-
-    @staticmethod
-    def get_low_quality_file(obj):
-        file_path = f"cameras/camera_{obj.id}_low.m3u8"
-        return f"{settings.MEDIA_URL}{file_path}"
+        fields = ['high_quality_file']
 
     @staticmethod
     def get_high_quality_file(obj):
-        file_path = f"cameras/camera_{obj.id}_high.m3u8"
-        return f"{settings.MEDIA_URL}{file_path}"
+        file_path = hashlib.md5(str(obj.id).encode()).hexdigest()
+        return f"{settings.MEDIA_URL}streams/{file_path}/index.m3u8"
 
 
-class ScreenshotSerializer(serializers.ModelSerializer):
+class RecordItemSerializer(serializers.ModelSerializer):
     """
-    Serializer class for the Screenshot model.
+    Serializer handling the serialization and deserialization of RecordItem instances.
 
-    Attributes:
-        user: A hidden field that automatically sets the current user as the
-            value.
-        file: An image field that requires a file to be provided and doesn't allow
-            empty files.
+    Meta:
+        model: RecordItem
+            The model associated with this serializer.
+        fields (List[str]): The list of model fields to include in the serialization.
+            These fields are `["id", "file", "description", "user", "is_video"]`.
     """
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     file = serializers.ImageField(required=True, allow_empty_file=False)
 
     class Meta:
-        model = Screenshot
-        fields = ["id", "file", "description", "user"]
-
-
-class RecordSerializer(serializers.ModelSerializer):
-    """
-    This class is a serializer for the Recording model.
-
-    Attributes:
-        user: Represents the currently authenticated user. This is a hidden
-              field that automatically uses the CurrentUserDefault.
-        file: Represents the file to be uploaded. This field is mandatory, and
-              empty uploads are not allowed.
-    """
-    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    file = serializers.FileField(required=True, allow_empty_file=False)
-
-    class Meta:
-        model = Recording
-        fields = ["id", "file", "description", "user"]
+        model = RecordItem
+        fields = ["id", "file", "description", "user", "is_video", "created_at"]

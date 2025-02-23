@@ -1,7 +1,5 @@
 from pathlib import Path
 
-from celery.schedules import crontab
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -96,23 +94,23 @@ USE_I18N = True
 USE_TZ = True
 
 # CELERY
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-
-CELERY_WORKER_CONCURRENCY = 8
-CELERY_ACKS_LATE = True
-CELERYD_PREFETCH_MULTIPLIER = 4
-
-
-CELERY_BEAT_SCHEDULE = {
-    "monitor_streams": {
-        "task": "apps.core.tasks.monitor_streams",
-        "schedule": crontab(minute="*/1"),
-    }
-}
+# CELERY_BROKER_URL = 'redis://localhost:6379/0'
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+#
+# CELERY_ACCEPT_CONTENT = ['json']
+# CELERY_TASK_SERIALIZER = 'json'
+#
+# CELERY_WORKER_CONCURRENCY = 8
+# CELERY_ACKS_LATE = True
+# CELERYD_PREFETCH_MULTIPLIER = 4
+#
+#
+# CELERY_BEAT_SCHEDULE = {
+#     "monitor_streams": {
+#         "task": "apps.core.tasks.monitor_streams",
+#         "schedule": crontab(minute="*/1"),
+#     }
+# }
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/

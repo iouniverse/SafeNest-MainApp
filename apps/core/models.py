@@ -48,6 +48,10 @@ class Camera(AbstractBaseModel):
 
     status = models.BooleanField(default=True)
 
+    @property
+    def rtsp_url(self):
+        return f'rtsp://{self.username}:{self.password}@{self.ip}:{self.port}/Streaming/Channels/101'
+
     def __str__(self):
         return f'{self.name} - {self.ip}:{self.port}'
 
@@ -57,55 +61,32 @@ class Camera(AbstractBaseModel):
         db_table = 'camera'
 
 
-class Screenshot(AbstractBaseModel):
+class RecordItem(AbstractBaseModel):
     """
-    Represents a screenshot uploaded by a user, containing details about the image and its metadata.
+    Represents a Record Item in the system.
 
-    Meta:
-        verbose_name (str): Human-readable name of the model in singular form, "Screenshot".
-        verbose_name_plural (str): Human-readable name of the model in plural form, "Screenshots".
-        db_table (str): Name of the database table associated with this model, "screenshot".
+    Attributes:
+        file (FileField): Represents the uploaded recording file. The field includes
+            file validators and configures the path for storing uploaded files.
+        is_video (BooleanField): Indicates whether the uploaded file is a video.
     """
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    file = models.ImageField(
-        upload_to='screenshots/%Y/%m/%d',
-        help_text='Please upload a screenshot image',
-        validators=[FileExtensionValidator(allowed_extensions=settings.ALLOWED_IMAGE_EXTENSIONS)]
-    )
-    description = models.CharField(max_length=255, null=True)
 
-    def __str__(self):
-        return f'{self.user} - {self.description}'
-
-    class Meta:
-        verbose_name = 'Screenshot'
-        verbose_name_plural = 'Screenshots'
-        db_table = 'screenshot'
-
-
-class Recording(AbstractBaseModel):
-    """
-    Represents a Recording model for managing user-uploaded recordings.
-
-    Meta:
-        verbose_name (str): A human-readable singular name of the model for
-            admin purposes.
-        verbose_name_plural (str): A plural human-readable name of the model
-            for admin purposes.
-        db_table (str): Specifies the database table name for the model.
-    """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     file = models.FileField(
         upload_to='recordings/%Y/%m/%d',
         help_text='Please upload a recording file',
-        validators=[FileExtensionValidator(allowed_extensions=settings.ALLOWED_VIDEO_EXTENSIONS)]
+        validators=[FileExtensionValidator(
+            allowed_extensions=['jpg', 'jpeg', 'png', 'mp4', 'avi', 'mov']
+        )]
     )
-    description = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(max_length=255, null=True)
+
+    is_video = models.BooleanField()
 
     def __str__(self):
-        return f'{self.user} - {self.description}'
+        return f'{self.id} - {self.description}'
 
     class Meta:
-        verbose_name = 'Recording'
-        verbose_name_plural = 'Recordings'
-        db_table = 'recording'
+        verbose_name = 'Record Item'
+        verbose_name_plural = 'Record Items'
+        db_table = 'record_item'
